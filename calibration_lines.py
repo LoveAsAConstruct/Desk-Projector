@@ -1,41 +1,65 @@
-import pygame
-import sys
-import os
+import cv2
+import numpy as np
 
-WIDTH, HEIGHT = 1920, 1080
+# Parameters
+checkerboard_size = (6, 9)  # Number of inner corners in the checkerboard (cols, rows)
+square_size = 25  # Size of a square in your units (e.g., mm)
 
-# Set the position of the window to the third monitor, directly below the main monitor
-os.environ['SDL_VIDEO_WINDOW_POS'] = '960,2160'
+# Generate checkerboard pattern
+def generate_checkerboard(width, height, checkerboard_size):
+    board = np.zeros((height, width), dtype=np.uint8)
+    step_y, step_x = height // checkerboard_size[1], width // checkerboard_size[0]
+    white = False
+    for y in range(0, height, step_y):
+        for x in range(0, width, step_x):
+            if white:
+                board[y:y + step_y, x:x + step_x] = 255
+            white = not white
+        if checkerboard_size[0] % 2 == 0:
+            white = not white
+    return board
 
-# Initialize Pygame
-pygame.init()
+# Load or capture an image from the camera
+def load_image(file_path):
+    return cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
 
-# Set the size of the projector display and make it fullscreen
-screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME)  # Adjust to your projector's resolution
+# Find corners in the image
+def find_corners(img, checkerboard_size):
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+    ret, corners = cv2.findChessboardCorners(img, checkerboard_size, None)
+    if ret:
+        corners2 = cv2.cornerSubPix(img, corners, (11, 11), (-1, -1), criteria)
+        return corners2
+    return None
 
-# Set background color
-screen.fill((0, 0, 0))  # White background
+# Calculate homography
+def calculate_homography(projector_points, image_points):
+    H, _ = cv2.findHomography(projector_points, image_points, cv2.RANSAC)
+    return H
 
-# Grid settings
-grid_color = (255, 255, 255)  # Black grid lines
-spacing = 8  # Adjust this value based on your calibration for 1 cm grid lines
+# Main function to execute the calibration
+def perform_calibration(image_path):
+    # Generate the pattern
+    projector_image = generate_checkerboard(800, 600, checkerboard_size)  # Dimensions of your projector's resolution
+    cv2.imwrite("checkerboard_pattern.png", projector_image)  # Save or project this image
 
-# Draw the grid
-for x in range(0, WIDTH, spacing):  # Adjust the range to your projector's dimensions
-    pygame.draw.line(screen, grid_color, (x, 0), (x, HEIGHT))
-for y in range(0, HEIGHT, spacing):
-    pygame.draw.line(screen, grid_color, (0, y), (WIDTH, y))
+    # Load the camera image
+    camera_image = load_image(image_path)
+    
+    # Detect corners
+    detected_corners = find_corners(camera_image, checkerboard_size)
+    if detected_corners is None:
+        print("Corners could not be detected.")
+        return None
 
-# Update the display
-pygame.display.flip()
+    # Projector points (assuming top-left corner is (0,0))
+    projector_points = np.zeros((checkerboard_size[0]*checkerboard_size[1], 3), dtype=np.float32)
+    projector_points[:, :2] = np.mgrid[0:checkerboard_size[0], 0:checkerboard_size[1]].T.reshape(-1, 2) * square_size
 
-# Run until closed
-try:
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-except Exception as e:
-    pygame.quit()
-    print(str(e))
+    # Compute homography
+    H = calculate_homography(projector_points[:, :2], detected_corners)
+    print("Homography Matrix:\n", H)
+    return H
+
+# Example usage
+homography = perform_calibration('path_to_your_image.jpg')
