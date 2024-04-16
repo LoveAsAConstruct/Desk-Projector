@@ -25,12 +25,12 @@ class CheckerboardWindow(QMainWindow):
         qp.setBrush(QBrush(QColor(255, 255, 255)))  # Initial white background
         qp.drawRect(self.rect())  # Draw the full background
 
-        grid_size = 5
+        grid_size = 10
         cell_width = self.width() // grid_size
         cell_height = self.height() // grid_size
 
         font = QFont()
-        font.setPixelSize(1)  # Increased font size
+        font.setPixelSize(60)  # Increased font size
         qp.setFont(font)
 
         for row in range(grid_size):
