@@ -18,40 +18,50 @@ if not cap.isOpened():
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
 
-ret, test_frame = cap.read()
-if not ret:
-    print("Failed to get frame from camera.")
-    exit(1)
-frame_height, frame_width = test_frame.shape[:2]
-print(frame_width, frame_height)
-# Define desired output size, you may adjust these values
-output_width, output_height = frame_width, frame_height
+global mousepos 
+mousepos = (0, 0)
 
-# Adjust the perspective matrix if needed (manual tweaking might be required)
-# perspective_matrix[0, 2] -= 100  # Adjust x translation if needed
-# perspective_matrix[1, 2] -= 50   # Adjust y translation if needed
+def mouse_callback(event, x, y, flags, param):
+    global mousepos
+    if event == cv2.EVENT_LBUTTONDOWN:
+        mousepos = (x, y)
 
-# Main loop for transforming and displaying video
-try:
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            print("Error: Failed to capture frame.")
-            break
+def stream_transformed_image():
+    ret, test_frame = cap.read()
+    if not ret:
+        print("Failed to get frame from camera.")
+        exit(1)
+    frame_height, frame_width = test_frame.shape[:2]
+    print(frame_width, frame_height)
 
-        # Apply the perspective transformation to the frame
-        # You might want to experiment with different sizes here.
-        output_size = (1920,1080)
-        transformed_frame = cv2.warpPerspective(frame, perspective_matrix, output_size)
+    cv2.namedWindow("Transformed Video")
+    cv2.setMouseCallback("Transformed Video", mouse_callback)
 
+    # Main loop for transforming and displaying video
+    try:
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                print("Error: Failed to capture frame.")
+                break
 
-        # Display the transformed frame
-        cv2.imshow('Transformed Video', transformed_frame)
+            # Apply the perspective transformation to the frame
+            output_size = (1920, 1080)
+            transformed_frame = cv2.warpPerspective(frame, perspective_matrix, output_size)
 
-        # Exit on pressing 'q'
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-finally:
-    # Clean up: release video capture and close windows
-    cap.release()
-    cv2.destroyAllWindows()
+            # Draw a circle at the mouse position
+            cv2.circle(transformed_frame, mousepos, 10, (255, 0, 0), -1)  # Blue circle with a radius of 10
+
+            # Display the transformed frame
+            cv2.imshow('Transformed Video', transformed_frame)
+
+            # Exit on pressing 'q'
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+    finally:
+        # Clean up: release video capture and close windows
+        cap.release()
+        cv2.destroyAllWindows()
+
+# Example usage
+stream_transformed_image()
