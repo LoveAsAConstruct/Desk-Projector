@@ -1,31 +1,57 @@
 import cv2
-import numpy as np
 import pickle
+import numpy as np
 
 # Load the perspective transformation matrix
+print("Loading the perspective transformation matrix...")
 with open('perspective_matrix.pkl', 'rb') as f:
     perspective_matrix = pickle.load(f)
+print("Matrix loaded.")
 
-# Capture a single frame from the camera
+# Initialize video capture from camera
 cap = cv2.VideoCapture(0)
-ret, frame = cap.read()
-if not ret:
-    print("Error: Failed to capture frame.")
+if not cap.isOpened():
+    print("Error: Could not open video source.")
     exit(1)
 
-# Apply perspective transformation to the frame
-transformed_frame = cv2.warpPerspective(frame, perspective_matrix, (frame.shape[1], frame.shape[0]))
+# Optionally adjust camera settings for consistent frame size
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
-# Define the scale factor for resizing the transformed frame
-scale_factor = 0.5  # Adjust as needed
+ret, test_frame = cap.read()
+if not ret:
+    print("Failed to get frame from camera.")
+    exit(1)
+frame_height, frame_width = test_frame.shape[:2]
+print(frame_height, frame_width)
+# Define desired output size, you may adjust these values
+output_width, output_height = frame_width, frame_height
 
-# Resize the transformed frame for better display
-transformed_frame_resized = cv2.resize(transformed_frame, None, fx=scale_factor, fy=scale_factor)
+# Adjust the perspective matrix if needed (manual tweaking might be required)
+# perspective_matrix[0, 2] -= 100  # Adjust x translation if needed
+# perspective_matrix[1, 2] -= 50   # Adjust y translation if needed
 
-# Display the original and transformed frames
-cv2.imshow('Original Frame', frame)
-cv2.imshow('Transformed Frame', transformed_frame_resized)
+# Main loop for transforming and displaying video
+try:
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: Failed to capture frame.")
+            break
 
-# Wait for a key press and then close OpenCV windows
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+        # Apply the perspective transformation to the frame
+        # You might want to experiment with different sizes here.
+        output_size = (frame.shape[1] * 2, frame.shape[0] * 2)
+        transformed_frame = cv2.warpPerspective(frame, perspective_matrix, output_size)
+
+
+        # Display the transformed frame
+        cv2.imshow('Transformed Video', transformed_frame)
+
+        # Exit on pressing 'q'
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+finally:
+    # Clean up: release video capture and close windows
+    cap.release()
+    cv2.destroyAllWindows()

@@ -25,7 +25,7 @@ class CheckerboardWindow(QMainWindow):
         qp.setBrush(QBrush(QColor(255, 255, 255)))  # Initial white background
         qp.drawRect(self.rect())  # Draw the full background
 
-        grid_size = 10
+        grid_size = 5
         cell_width = self.width() // grid_size
         cell_height = self.height() // grid_size
 
