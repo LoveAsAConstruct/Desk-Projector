@@ -15,15 +15,15 @@ if not cap.isOpened():
     exit(1)
 
 # Optionally adjust camera settings for consistent frame size
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
 
 ret, test_frame = cap.read()
 if not ret:
     print("Failed to get frame from camera.")
     exit(1)
 frame_height, frame_width = test_frame.shape[:2]
-print(frame_height, frame_width)
+print(frame_width, frame_height)
 # Define desired output size, you may adjust these values
 output_width, output_height = frame_width, frame_height
 
@@ -41,7 +41,7 @@ try:
 
         # Apply the perspective transformation to the frame
         # You might want to experiment with different sizes here.
-        output_size = (frame.shape[1] * 2, frame.shape[0] * 2)
+        output_size = (1920,1080)
         transformed_frame = cv2.warpPerspective(frame, perspective_matrix, output_size)
 
 
