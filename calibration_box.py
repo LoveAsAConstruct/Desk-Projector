@@ -11,7 +11,7 @@ class CheckerboardWindow(QMainWindow):
         self.setFixedSize(width, height)
         self.move(*monitor_position)
         self.setWindowTitle('Checkerboard Pattern')
-
+        self.pointxy = 0, 0
         # Enable fullscreen mode
         self.showFullScreen()
 
@@ -47,6 +47,9 @@ class CheckerboardWindow(QMainWindow):
 
                 qp.setPen(text_color)  # Set text color
                 qp.drawText(QRect(col * cell_width, row * cell_height, cell_width, cell_height), Qt.AlignCenter, f"{row * grid_size + col}")
+        if self.pointxy != (0,0):
+            qp.setPen = QColor(255,0,0)
+            qp.drawEllipse(QRect(self.pointxy[0], self.pointxy[1], 20,20))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

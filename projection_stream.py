@@ -63,5 +63,5 @@ def stream_transformed_image():
         cap.release()
         cv2.destroyAllWindows()
 
-# Example usage
-stream_transformed_image()
+if __name__ == '__main__':
+    stream_transformed_image()
