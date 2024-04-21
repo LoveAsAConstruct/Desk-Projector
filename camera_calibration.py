@@ -21,7 +21,7 @@ def select_projector_point(event, x, y, flags, param):
         selected_projector_points.append((x, y))
 
 # Load the camera image
-camera_img = cv2.imread(r'calibration_images\camera\cameraimage640x360.png')
+camera_img = cv2.imread(r'C:\Users\isaia\Documents\Desk Projector\calibration_images\camera\WIN_20240420_23_02_07_Pro.jpg')
 clone_camera = camera_img.copy()
 
 # Create a window for camera image and set mouse callback
