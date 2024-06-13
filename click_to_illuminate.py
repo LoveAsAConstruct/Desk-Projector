@@ -28,21 +28,21 @@ class CheckerboardWindow(QMainWindow):
 
     def paintEvent(self, event):
         qp = QPainter(self)
-        qp.setBrush(QBrush(QColor(255, 255, 255)))  # White background
+        qp.setBrush(QBrush(QColor(0, 0, 0)))  # White background
         qp.drawRect(self.rect())  # Draw the full background
 
         if self.pointxy:
-            qp.setPen(QColor(255, 0, 0))
-            qp.setBrush(QBrush(QColor(255, 0, 0)))
-            qp.drawEllipse(*self.pointxy, 20, 20)  # Draw red circle
+            qp.setPen(QColor(255, 255, 255))
+            qp.setBrush(QBrush(QColor(255, 255, 255)))
+            qp.drawEllipse(*self.pointxy, 50, 50)  # Draw red circle
 
 def mouse_callback(event, x, y, flags, param):
     global mousepos, projection_window
-    if event == cv2.EVENT_LBUTTONDOWN:
-        mousepos = (x, y)  # Store mouse position
+    if event == cv2.EVENT_MOUSEMOVE:
+        mousepos = (x, y)  # Update mouse position continuously
         if projection_window:
             # Transform coordinates to projection window scale and update
-            projection_window.pointxy = (x, y)  # Adjust scaling here if necessary
+            projection_window.pointxy = (x-30, y-30)  # Adjust scaling here if necessary
             projection_window.update()  # Trigger repaint
 
 def stream_transformed_image():
@@ -50,7 +50,9 @@ def stream_transformed_image():
     if not cap.isOpened():
         print("Error: Could not open video source.")
         sys.exit(1)
-
+    # Optionally adjust camera settings for consistent frame size
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
     cv2.namedWindow("Transformed Video")
     cv2.setMouseCallback("Transformed Video", mouse_callback)
 
